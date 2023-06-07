@@ -1,0 +1,60 @@
+im_filename='/Users/christian/Documents/summer2023/matlab/my_data/0.1-5Hz/04_awake_8x8_30hz_36500fr_FR30Hz_BPF0.1-5Hz_GSR_DFF0-G2-fr1-36500.raw';
+mask_filename='/Users/christian/Documents/summer2023/matlab/my_data/0.1-5Hz/mask.raw';
+
+% im_filename='/Users/christian/Documents/summer2023/matlab/my_data/7-10Hz/04_awake_8x8_30hz_36500fr_FR30Hz_BPF7-10Hz_GSR_DFF0-G2-fr1-36500.raw';
+% mask_filename='/Users/christian/Documents/summer2023/matlab/my_data/7-10Hz/mask.raw';
+
+% im_filename='/Users/christian/Documents/summer2023/matlab/my_data/10-15Hz/04_awake_8x8_30hz_36500fr_FR30Hz_BPF10-14.999Hz_GSR_DFF0-G2-fr1-36500.raw';
+% mask_filename='/Users/christian/Documents/summer2023/matlab/my_data/10-15Hz/mask.raw';
+
+video_filename='/Users/christian/Documents/summer2023/matlab/my_data/brain_video.avi';
+imheight=128; % EDIT
+imwidth=128; % EDIT
+nframes=240; % EDIT
+im_raw = imreadallraw(im_filename,imheight,imwidth,nframes,'float32');
+mask_raw = imreadallraw(mask_filename,imheight,imwidth,1,'float32');
+
+% [minimum maximum] = bounds(mask_raw, "all")
+
+% [minimum maximum] = bounds(im_raw, "all");
+% im_normalized = im_raw - minimum;
+% im_normalized = im_normalized ./ (maximum - minimum);
+
+output_video = VideoWriter(video_filename);
+output_video.FrameRate = 15;
+open(output_video)
+
+for ii = 1:nframes
+    [minimum maximum] = bounds(im_raw(:, :, ii), "all");
+    im_normalized = im_raw(:, :, ii) - minimum;
+    if minimum < 0
+        im_normalized = im_normalized ./ (maximum - minimum);
+    else
+        im_normalized = im_normalized ./ (maximum + minimum);
+    end
+    im_normalized = im_normalized .* mask_raw;
+
+    writeVideo(output_video, im_normalized)
+end
+
+close(output_video)
+
+
+
+clear mov;
+video = VideoReader(video_filename);
+ii = 1;
+while hasFrame(video)
+    frame = im2frame(readFrame(video));
+    ii
+    frame
+    mov(ii) = frame;
+    % mov(ii) = im2frame(readFrame(video));
+    ii = ii + 1;
+end
+
+size(mov)
+
+figure
+imshow(mov(1).cdata, "Border", "tight")
+movie(mov, 1, video.FrameRate)
